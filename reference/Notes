@@ -1,0 +1,136 @@
+This document is meant to be read alongside and referenced with the
+.py files for this project.
+
+Checking player input is known as the `event loop`
+An event is usually a player input
+
+A common game loop is:
+1. Checking player input (event loop)
+2. Use that information to place elemnts on the screen
+3. Create the image, loop to step 1.
+This generates a Frame
+
+Pygame is a framework to draw images on the screen
+Pygame also plays sounds
+Pygame also checks player inputs without using input()
+Pygame is also good for text, timers, and collission detection.
+
+Pygame is NOT a replacement for a game engine and is not 
+suitable for large projects.
+It lacks things such as:
+Physics engine
+Skeleton animations
+Level editor
+
+pygame.init() is important to run before any other pygame code
+it initialises the module for rendering and sounds.
+pygame.QUIT is the opposite of .init()
+exit() (from sys) can be used to exit the game loop, but you can
+also do `running = True` `running = False` to break the loop.
+
+pygame.display.set_mode((width, height))
+-
+This should be set to a variable which then displays the running
+game window.
+
+Games must be run in a `while True:` loop or they will just close
+when the script ends.
+
+pygame.display.update() redraws the settings set under
+pygame.display and refresh the window.
+
+`for event in pygame.event.get()` loops through all the events
+and checks for them. these events can be found in documentation.
+
+Framerate is a tricky thing to work around because the framerate
+will alter how fast the game runs and how fast the logic runs.
+
+To set a framerate a clock object must be made, this is a timer
+independant of the games logic speed, the clock object can be used
+to tell the game loop how much time must pass before it can render
+another frame. This sets the framerate ceiling.
+
+To draw things on you need a `surface`, the `pygame.display` is 
+one such surface, a display surface. But to draw on it you need
+a regular surface. A regular surface is just an image, a colour,
+imprted image or text.
+A display surface is the screen space, a regular surface is the
+images you put on the display to show things.
+You are limited to 1 display surface, but regular surfaces can have
+as many as you want, but they are only displayed when they're on the
+display surface.
+
+The display surface will not update what's on top of it, if there
+is just a display surface and a moving surface, it will have the
+"source out of bounds" effect.
+
+Generated surfaces are always black unless defined otherwise.
+
+pygame.Surface((width, height))
+-
+.Surface creates a surface similar to the display surface
+
+screen.blit(surface, pos)
+-
+This places a surface onto the display surface.
+blit = BLock Image Transfer
+
+0,0 coordinates default to the top left of the window and the
+positive coords are to the bottom right.
+
+pygame.image.load('') is how you load images as a surface, these
+can be asigned to a variable and blit onto the display surface.
+adding `.convert()` to the end of the image load will convert it
+to a format pygame can work with easier.
+`.conver_alpha()` does the same but converts with transparency.
+
+To generate text, you must create an image of the text, then place
+it on the dispaly surface.
+You start with a font, you use the font to write the text on an
+existing surface, then you place that surface on the display.
+
+pygame.font.Font(font type, font size)
+-
+can be set to a variable to start generating font of the specified
+arguments, the font type can be `None` and it will use the default
+pygame font.
+Once a font has been set, you then need to generate it on a surface
+using `[font variable].render(text, AA, color)`
+text is what is written, AA is a boolean for anti aliasing, color
+is the same as the surface color variables.
+
+rectangles are important with pygame as they help with drawing
+basic surfaces while positioned correctly and are how collissions
+are detected.
+Surfaces are generally placed on a rectangle instead of free-
+floating.
+
+.get_rect(pos on rect, (coords))
+-
+converts a existing surface into a rect so you can use positional
+points on it.
+
+adding .left/right/bottomleft/midbottom etc on a rect object will
+move it relative to that point on the rect. You can do math on this
+point and it will affect the positional coordinates.
+
+rect1.colliderect([rect2]) checks if two rectangles collide or intersect.
+We get a 0 or 1 as an output.
+
+rect1.collidepoint((x,y)) is the same as above but it checks if
+a coord on the display surface instead of another rect. this is
+most commonly used for mouse detection.
+
+pygame.draw.[shape](surface, colour, shape)
+-
+can have .rect/.circle etc passed in for it to generate shapes to
+render, there are a lot of arguments for this, but all you need
+to begin with is the first 3.
+
+`pygame.key` interacts with the keyboard inputs
+however you can do the same using the events, such as
+`if event.type == pygame.KEYDOWN:`
+
+When managing user input, the event loop is the best way to handle
+that outside of using classes which then would be handled inside
+the game loop.

@@ -1,0 +1,32 @@
+
+Game focused on parry mechanics:
+
+You get a single attack, a sword swing
+if you swing into a enemy in neutral, they parry and hit you back
+if you swing into a enemy in recovery, you hit
+first ~10 frames of your swing is a parry, this is wwhat the game is all about
+
+movement will be fast and committal, mimicking platform fighters:
+
+initial uncancellable* dash when moving that moves at a boosted speed
+*can be cancelled with an attack to inherit inertia
+transforms into a run when held
+fast fall
+dashing backwards will keep you facing forward until the dash is half over and you start a run
+movment should NEVER be start-and-go, everything needs build-up and wind-down, intertia and acceleration. we love += -=
+
+Stage is simple one screen platform:
+
+1 enemy will spawn, then 2, then max at 3
+stage will likely be Smash bros battlefield, maybe variants
+something fancy with falling off maybe, but no smash-bros mechanics
+
+Enemies will be simple, 3 moves that RPS the player:
+
+*maybe* have a tell for when they will attack, depends it if makes it too easy
+have a initial fast attack, not too fast to react too;
+then a slow attack intended to bait the fast parry;
+then something inbetween to catch patient players
+probably be simple silhouettes
+a system so while 2 enemies can attack a player at any instance, they don't do it at the same time.
+
