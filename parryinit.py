@@ -5,17 +5,21 @@ class Player(pygame.sprite.Sprite):
     
     def __init__(self):
         super().__init__()
-        self.player_idle = pygame.Surface((100, 150))
+        self.player_idle = pygame.Surface((50, 75))
         self.player_idle.fill('cyan')
 
         self.image = self.player_idle
         self.rect = self.image.get_rect(midbottom = (800, 500))
         self.gravity = 0
+        self.friction = 0
         self.floor = 1000
-        self.prev_y = self.rect.y
 
-        self.move_right = 0
-        self.move_left = 0
+        self.dx = 0
+        self.dy = 0
+        self.prev_y = 0
+        self.air = True
+        self.can_dash = True
+        self.timer = 15
         self.jump = 0
         self.down = 0
         self.attack = 0
@@ -33,79 +37,80 @@ class Player(pygame.sprite.Sprite):
         if not keys[pygame.K_LEFT]:
             self.move_left = 0
 
-    def player_movement(self):
+        if keys[pygame.K_UP]:
+            self.jump = 1
+        if not keys[pygame.K_UP]:
+            self.jump = 0
 
+    def player_movement(self):
+        
         if self.move_right:
-            self.rect.x += 10
+            self.dx += 2
+            if self.dx >= 10:
+                self.dx = 11
+
         if self.move_left:
-            self.rect.x -=10
+            self.dx += -2
+            if self.dx <= -10:
+                self.dx = -11
+                
+
+        if self.jump and not self.air:
+            self.gravity = 0
+            self.dy = -50
+    
+    def apply_friction(self):
+        self.friction = 1
+        if self.dx > 0:
+            self.dx -= self.friction
+        if self.dx < 0:
+            self.dx += self.friction
+        
 
     def apply_gravity(self):
-        self.prev_y = self.rect.y
         self.gravity += 1
-        self.rect.y += self.gravity
         if self.gravity >=101:
             self.gravity = 100
+        self.dy += self.gravity
 
     def airborne(self):
-        difference = self.rect.y - self.prev_y
-        print('difference = ' + str(difference))
-        if difference == 0:
+        self.difference = self.rect.y - self.prev_y
+        print((self.rect.y, self.prev_y))
+        print('difference = ' + str(self.difference))
+        if self.difference == 0:
             print('on ground')
-            return False
+            self.air = False
         else:
             print('in air')
-            return True
+            self.air = True
 
     def collision(self, rect_list):
         for rect in rect_list:
-            if self.rect.colliderect(rect):
-                self.gravity = 0
-
-
-
-
-
-
-
-
-
-
-
-
-                
-                # rel_xpos = 'right'
-                # rel_ypos = 'down'
-                #
-                # rel_x = rect.centerx - self.rect.centerx
-                # rel_y = rect.centery - self.rect.centery
-                # if rel_x >= 0: rel_xpos = 'right'
-                # else: rel_xpos = 'left'
-                # if rel_y >= 0: rel_ypos = 'down'
-                # else: rel_ypos = 'up'
-                #
-                # if rel_ypos == 'down':
-                #     if rel_xpos == 'right':
-                #         if rect.collidepoint(self.rect.bottomright):
-                #             self.rect.bottom = rect.top
-                #     if rel_xpos == 'left':
-                #         if rect.collidepoint(self.rect.bottomleft):
-                #             self.rect.bottom = rect.top
-                # if rel_xpos == 'right':
-                #     if rect.clipline((self.rect.right + 1, self.rect.bottom - 1), (self.rect.right + 1, self.rect.top + 1)):
-                #         self.rect.right = rect.left - 1
-                # if rel_xpos == 'left':
-                #     if rect.clipline((self.rect.left -1, self.rect.bottom -1), (self.rect.left -1, self.rect.top +1)):
-                #         self.rect.left = rect.right - 1
-
+            if rect.colliderect(self.rect.x + self.dx, self.rect.y, self.image.get_width(), self.image.get_height()):
+                if self.dx > 0:
+                    self.dx = rect.left - self.rect.right
+                if self.dx <0:
+                    self.dx = rect.right - self.rect.left
+            if rect.colliderect(self.rect.x, self.rect.y + self.dy, self.image.get_width(), self.image.get_height()):
+                if self.gravity < 0 and self.rect.top >= rect.bottom:
+                    self.dy = rect.bottom - self.rect.top
+                    self.gravity = 0
+                elif self.gravity >= 0 and self.rect.bottom <= rect.top:
+                    self.dy = rect.top - self.rect.bottom
+                    self.gravity = 0
 
 
     def update(self):
         self.apply_gravity()
         self.player_input()
-        self.player_movement()
-        self.collision(arena_rect_list)
         self.airborne()
+        self.player_movement()
+        self.apply_friction()
+        self.collision(arena_rect_list)
+        self.prev_y = self.rect.y
+        self.rect.x += self.dx
+        self.rect.y += self.dy
+        print(self.dx)
 
 # funcs
 
@@ -144,7 +149,6 @@ while is_running:
     
     player.draw(screen)
     player.update()
-    print(player.sprite.move_left, player.sprite.move_right)
 
     # final updates
     pygame.display.update()
