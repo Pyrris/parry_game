@@ -47,6 +47,8 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_p]:
             self.rect.x = 800
             self.rect.y = 500
+            self.dy = 0
+            self.dx = 0
 
         if self.move_right or self.move_left:
             self.is_pressed = True
@@ -117,7 +119,7 @@ class Player(pygame.sprite.Sprite):
                 
         if self.jump and not self.air:
             self.gravity = 0
-            self.dy += -20
+            self.dy += -23
             # self.air = True
     
     def apply_friction(self):
@@ -137,9 +139,9 @@ class Player(pygame.sprite.Sprite):
     def apply_gravity(self):
         if self.frametime == 3:
             self.gravity += 1
-            if self.gravity >=31:
-                self.gravity = 30
             self.dy += self.gravity
+            if self.dy >=31:
+                self.dy = 30
             self.frametime = 0
         self.frametime +=1
 
