@@ -1,5 +1,5 @@
 import pygame
-from timer import Timer
+
 
 # class
 class Player(pygame.sprite.Sprite):
@@ -14,14 +14,15 @@ class Player(pygame.sprite.Sprite):
         self.gravity = 0
         self.friction = 0
         self.floor = 1000
-        self.facing = 'right'
 
+        global runtime
         self.dx = 0
         self.dy = 0
         self.prev_y = 0
         self.air = True
         self.is_dash = False
         self.dash_ready = True
+        self.timer = 15
         self.frametime = 0
         self.jumptime = 0
         self.dashtime = 0
@@ -36,13 +37,11 @@ class Player(pygame.sprite.Sprite):
                
         if keys[pygame.K_RIGHT]:
             self.move_right = 1
-            self.facing = 'right'
         if not keys[pygame.K_RIGHT]:
             self.move_right = 0
             
         if keys[pygame.K_LEFT]:
             self.move_left = 1
-            self.facing = 'left'
         if not keys[pygame.K_LEFT]:
             self.move_left = 0
         
@@ -70,90 +69,85 @@ class Player(pygame.sprite.Sprite):
 
     def player_movement(self):
         
-        # dash checks and timer
-        if self.dash_ready and self.is_pressed and not self.air:
+        if self.dash_ready and self.is_pressed:
             self.is_dash = True
             self.dash_ready = False
         else:
-            self.readytime += 1
-            if self.readytime >= 30 and not self.is_pressed: # dash cooldown
+            self.readytime +=1
+            if self.readytime >= 30 and not self.is_pressed:
                 self.dash_ready = True
                 self.readytime = 0
             
         if self.is_dash:
             self.dashtime += 1
-            if self.dashtime >= 15: # how many frames you dash for
-                    self.is_dash = False
-                    self.dashtime = 0
+            if self.dashtime >= 15:
+                self.is_dash = False
+                self.dashtime = 0
 
         print('dash = ' + str(self.is_dash))
         print('press = ' + str(self.is_pressed))
 
-        movespeed = 0
-        speed_cap = 10
+        # grounded right dash
+        if self.move_right and not self.air and self.is_dash:
+            self.dx +=5
+        # grounded right
+        elif self.move_right and not self.air:
+            self.dx += 2
+        #air right   
+        if self.move_right and self.air:
+            if self.frametime in (0, 2):
+                self.dx += 1
+        # dash right speedcap
+        if self.is_dash:
+            if self.dx >= 16:
+                self.dx = 15
+                
+        # right speedcap
+        elif self.dx >= 11 and not self.air:
+            self.dx = 10
 
-        if self.is_pressed:
-            movespeed = 2
-            if self.is_dash:
-                movespeed = movespeed * 2
-                speed_cap = int(speed_cap * 1.5)
-            if self.air:
-                movespeed = 1
-
-        if self.air:
-            speed_cap = 50
-            if self.frametime in (1, 3):
-                if self.facing == 'right':
-                    self.dx += movespeed
-                else:
-                    self.dx -= movespeed
-
-        else:                       
-            if self.facing == 'right':
-                self.dx += movespeed
-            else:
-                self.dx -= movespeed
+        # grounded left dash
+        if self.move_left and not self.air and self.is_dash:
+            self.dx += -5
+        # grounded left
+        elif self.move_left and not self.air:
+            self.dx += -2
             
-        if self.dx >= speed_cap + 1:
-            self.dx = speed_cap
-        if self.dx <= speed_cap - (speed_cap * 2) - 1:
-            self.dx = speed_cap - (speed_cap * 2)
-
+        # air left
+        if self.move_left and self.air:
+            if self.frametime in (0, 2):
+                self.dx += -1
+                
+        # dash left speecap
+        if self.is_dash:
+            if self.dx <= -16:
+                self.dx = -15
+        # left speecap 
+        elif self.dx <= -11 and not self.air:
+            self.dx = -10
+                
         if self.jump and not self.air:
             self.gravity = 0
-            self.dy -= 18
-
-        # movespeed cap = 10
-        # acceleration = 2
-        # dash cap = 15
-        # dash acceleration = 5
-        # air speed = 1
-        # no air speed cap
+            self.dy += -18
+            # self.air = True
     
-    def placeholder_sprite_changes(self):
+    def placeholder_colour_swap(self):
         if self.is_dash:
             self.player_idle.fill('blue')
         else:
             self.player_idle.fill('cyan')
-
-        if self.facing == 'right':
-            pygame.draw.line(screen, 'pink', self.rect.topleft, self.rect.midright, 3)
-            pygame.draw.line(screen, 'pink', self.rect.bottomleft, self.rect.midright, 3)
-        if self.facing == 'left':
-            pygame.draw.line(screen, 'pink', self.rect.topright, self.rect.midleft, 3)
-            pygame.draw.line(screen, 'pink', self.rect.bottomright, self.rect.midleft, 3)
 
     def apply_friction(self):
         if self.frametime in (0, 2):
             self.friction = 1.5
             
             if self.dx > 0 and not self.air:
-                self.dx = int(self.dx // self.friction)
+                self.dx = (self.dx // self.friction)
                 if self.dx < 0:
                     self.dx = 0
                     
             if self.dx < 0 and not self.air:
-                self.dx = int(self.dx // self.friction) +1
+                self.dx = (self.dx // self.friction) +1
                 if self.dx > 0:
                     self.dx = 0
         
@@ -200,7 +194,7 @@ class Player(pygame.sprite.Sprite):
         self.player_movement()
         self.apply_friction()
         self.collision(arena_rect_list)
-        self.placeholder_sprite_changes()
+        self.placeholder_colour_swap()
         self.prev_y = self.rect.y
         self.rect.x += self.dx
         self.rect.y += self.dy
@@ -235,11 +229,9 @@ floor_rect_left = floor_surf_thin.get_rect(midright = (500, 550))
 floor_rect_right = floor_surf_thin.get_rect(midleft = (1100, 550))
 arena_rect_list = [floor_rect, floor_rect_left, floor_rect_right]
 
-# timer
-simple_timer = Timer(1000)
-
 # game loop
 while is_running:
+    runtime = pygame.time.get_ticks()
     
     # event loop
     for event in pygame.event.get():
@@ -254,11 +246,11 @@ while is_running:
     pygame.draw.rect(screen, 'black', floor_rect)
     pygame.draw.rect(screen, 'black', floor_rect_left)
     pygame.draw.rect(screen, 'black', floor_rect_right)
-    # pygame.draw.line(screen, 'pink', player.sprite.rect.topleft, player.sprite.rect.midright, 10)
     
     player.draw(screen)
     player.update()
 
     # final updates
+    print(runtime)
     pygame.display.update()
     clock.tick(60)
