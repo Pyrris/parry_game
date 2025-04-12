@@ -22,14 +22,14 @@ class Player(pygame.sprite.Sprite):
         self.air = True
         self.is_dash = False
         self.dash_ready = True
+        
         self.frametime = 0
         self.jumptime = 0
         self.dashtime = 0
         self.readytime = 0
+        self.atktime = 0
         
-        self.jump = 0
         self.down = 0
-        self.attack = 0
 
     def player_input(self):
         keys = pygame.key.get_pressed()
@@ -45,6 +45,11 @@ class Player(pygame.sprite.Sprite):
             self.facing = 'left'
         if not keys[pygame.K_LEFT]:
             self.move_left = 0
+
+        if keys[pygame.K_x]:
+            self.attack = 1
+        if not keys[pygame.K_x]:
+            self.attack = 0
         
         if keys[pygame.K_p]:
             self.rect.x = 800
@@ -123,12 +128,14 @@ class Player(pygame.sprite.Sprite):
             self.gravity = 0
             self.dy -= 18
 
-        # movespeed cap = 10
-        # acceleration = 2
-        # dash cap = 15
-        # dash acceleration = 5
-        # air speed = 1
-        # no air speed cap
+    def player_attack(self):
+        if self.attack == 1:
+            if self.facing == 'right':
+                self.atkrect = pygame.Rect(self.rect.right - 25, self.rect.top + 10, 50, 50)
+            else:
+                self.atkrect = pygame.Rect(self.rect.left - 25, self.rect.top + 10, 50, 50)
+            pygame.draw.rect(screen, 'red', self.atkrect)
+            print('attack')
     
     def placeholder_sprite_changes(self):
         if self.is_dash:
@@ -197,6 +204,7 @@ class Player(pygame.sprite.Sprite):
         self.apply_gravity()
         self.player_input()
         self.airborne()
+        self.player_attack()
         self.player_movement()
         self.apply_friction()
         self.collision(arena_rect_list)
